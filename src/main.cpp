@@ -1,17 +1,16 @@
 #include "pros/adi.hpp"
 #include "pros/motors.hpp"
 #include "pros/competition.hpp"
-#include "pros/adi.hpp"
 #include "pros/rtos.hpp"
 #include "pros/vision.hpp"
 #include "pros/serial.hpp"
 #include "pros/misc.hpp"
 #include "pros/imu.hpp"
-#include "pros/adi.hpp"
-#include "pros/adi.hpp"
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+
+#define (50 * 200 / 100) RPM_MAX_18_1 // 200 RPM max for 18:1 gearse
 
 // Motor definitions
 pros::Motor frontMotorRight(16, pros::E_MOTOR_GEARSET_18, false);
@@ -68,8 +67,8 @@ void outputBackwardsReleased() { outputBelt.move_velocity(0); }
 
 // Competition callbacks
 void autonomous() {
-    rightMotors.move_velocity(50 * 200 / 100); // 200 RPM max for 18:1 gearset
-    leftMotors.move_velocity(50 * 200 / 100);
+    rightMotors.move_velocity(RPM_MAX_18_1); // 200 RPM max for 18:1 gearset
+    leftMotors.move_velocity(RPM_MAX_18_1);
     pros::delay(15000); // 15 seconds
     rightMotors.move_velocity(0);
     leftMotors.move_velocity(0);
@@ -131,5 +130,5 @@ int main() {
         opcontrol();
     }
 
-    while (true) pros::delay(100);
+    for (;;) { pros::delay(100); } // hang main
 }
