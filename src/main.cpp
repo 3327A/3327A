@@ -1,46 +1,32 @@
-#include "pros/adi.hpp"
-#include "pros/motors.hpp"
-#include "pros/competition.hpp"
-#include "pros/rtos.hpp"
-#include "pros/vision.hpp"
-#include "pros/serial.hpp"
-#include "pros/misc.hpp"
-#include "pros/imu.hpp"
-#include <cstdlib>
-#include <ctime>
-#include <cmath>
-
-#define (50 * 200 / 100) RPM_MAX_18_1 // 200 RPM max for 18:1 gearse
+#include "main.h"
 
 // Motor definitions
-pros::Motor frontMotorRight(16, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor middleMotorRight(17, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor backMotorRight(18, pros::E_MOTOR_GEARSET_18, false);
+pros::Motor frontMotorRight(16, pros::v5::MotorGears::blue);
+pros::Motor backMotorRight(18, pros::v5::MotorGears::blue);
+pros::Motor middleMotorRight(17, pros::v5::MotorGears::blue);
 
-pros::Motor frontMotorLeft(15, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor middleMotorLeft(14, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor backMotorLeft(13, pros::E_MOTOR_GEARSET_18, false);
+pros::Motor backMotorLeft(-13, pros::v5::MotorGears::blue);  // Negative port = reversed
+pros::Motor frontMotorLeft(-15, pros::v5::MotorGears::blue);
+pros::Motor middleMotorLeft(-14, pros::v5::MotorGears::blue);
 
-pros::MotorGroup rightMotors({frontMotorRight, middleMotorRight, backMotorRight});
-pros::MotorGroup leftMotors({frontMotorLeft, middleMotorLeft, backMotorLeft});
-
-// Intake/output
-pros::Motor rubberBandThing(20, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor outputBelt(10, pros::E_MOTOR_GEARSET_06, false);
+// Intake and output motors
+pros::Motor rubberBandThing(20, pros::v5::MotorGears::blue);
+pros::Motor outputBelt(10, pros::v5::MotorGears::green);
 
 // Pneumatics
-pros::ADIDigitalOut pistonA('A');
-pros::ADIDigitalOut pistonB('B');
+pros::adi::DigitalOut pistonA('A');
+pros::adi::DigitalOut pistonB('B');
+
 bool pistonAState = false;
 bool pistonBState = false;
 
 // Controller
-pros::Controller Controller(pros::E_CONTROLLER_MASTER);
+pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
-// Utility functions
-int clamp(int value, int min_val, int max_val) {
-    if (value < min_val) return min_val;
-    if (value > max_val) return max_val;
+// Helper functions
+int clamp(int value, int min, int max) {
+    if (value < min) return min;
+    if (value > max) return max;
     return value;
 }
 
@@ -54,81 +40,139 @@ void togglePistonB() {
     pistonB.set_value(pistonBState);
 }
 
-// Intake/output controls
-void intakePressed() { rubberBandThing.move_velocity(100); }
-void intakeReleased() { rubberBandThing.move_velocity(0); }
-void intakeBackwardsPressed() { rubberBandThing.move_velocity(-100); }
-void intakeBackwardsReleased() { rubberBandThing.move_velocity(0); }
-
-void outputPressed() { outputBelt.move_velocity(100); }
-void outputReleased() { outputBelt.move_velocity(0); }
-void outputBackwardsPressed() { outputBelt.move_velocity(-100); }
-void outputBackwardsReleased() { outputBelt.move_velocity(0); }
-
-// Competition callbacks
-void autonomous() {
-    rightMotors.move_velocity(RPM_MAX_18_1); // 200 RPM max for 18:1 gearset
-    leftMotors.move_velocity(RPM_MAX_18_1);
-    pros::delay(15000); // 15 seconds
-    rightMotors.move_velocity(0);
-    leftMotors.move_velocity(0);
+// Intake functions
+void intakeForward() {
+    rubberBandThing.move(127);
 }
 
+void intakeStop() {
+    rubberBandThing.move(0);
+}
+
+void intakeBackward() {
+    rubberBandThing.move(-127);
+}
+
+// Output functions
+void outputForward() {
+    outputBelt.move(127);
+}
+
+void outputStop() {
+    outputBelt.move(0);
+}
+
+void outputBackward() {
+    outputBelt.move(-127);
+}
+
+// Drive functions
+void setLeftMotors(int speed) {
+    frontMotorLeft.move(speed);
+    backMotorLeft.move(speed);
+    middleMotorLeft.move(speed);
+}
+
+void setRightMotors(int speed) {
+    frontMotorRight.move(speed);
+    backMotorRight.move(speed);
+    middleMotorRight.move(speed);
+}
+
+void stopLeftMotors() {
+    frontMotorLeft.move(0);
+    backMotorLeft.move(0);
+    middleMotorLeft.move(0);
+}
+
+void stopRightMotors() {
+    frontMotorRight.move(0);
+    backMotorRight.move(0);
+    middleMotorRight.move(0);
+}
+
+void stopAllDrive() {
+    stopLeftMotors();
+    stopRightMotors();
+}
+
+/**
+ * Runs initialization code. This occurs as soon as the program is started.
+ */
+void initialize() {
+  pros::lcd::initialize();
+  pros::lcd::set_text(1, "I AM TIKING IT");
+  
+  // Make sure pistons start in down position
+  pistonA.set_value(false);
+  pistonB.set_value(false);
+}
+
+/**
+ * Runs while the robot is in the disabled state of Field Management System or
+ * the VEX Competition Switch, following either autonomous or opcontrol.
+ */
+void disabled() {}
+
+/**
+ * Runs after initialize(), and before autonomous when connected to the Field
+ * Management System or the VEX Competition Switch.
+ */
+void competition_initialize() {}
+
+/**
+ * Runs the autonomous code.
+ */
+void autonomous() {
+    
+}
+
+/**
+ * Runs the operator control code.
+ */
 void opcontrol() {
+    // Make sure pistons are down
     pistonA.set_value(false);
     pistonB.set_value(false);
+  
+    // Button state tracking for toggles
+    bool buttonUpPressed = false;
+    bool buttonXPressed = false;
 
-    while (true) {
-        int dir_move = Controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
-        int dir_turn = Controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+    for (int i{}; true ; i++) {
+        // Get joystick values
+        int dir_move = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
+        int dir_turn = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_X);
 
-        int left_speed = clamp(dir_move + dir_turn, -100, 100);
-        int right_speed = clamp(dir_move - dir_turn, -100, 100);
+        // Calculate motor speeds (arcade drive)
+        int left_speed = clamp(dir_move + dir_turn, -127, 127);
+        int right_speed = clamp(dir_move - dir_turn, -127, 127);
 
-        leftMotors.move_velocity(left_speed * 200 / 100);
-        rightMotors.move_velocity(right_speed * 200 / 100);
+        // Drive motors
+        setLeftMotors(left_speed);
+        setRightMotors(right_speed);
 
-        // Controller button handling
-        if (Controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) intakePressed();
-        else intakeReleased();
+        // Intake controls
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+            intakeForward();
+            outputBackward();
+        } else {
+            outputStop();
+        }
 
-        if (Controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) outputPressed();
-        else outputReleased();
+        // Pneumatics toggle with button state tracking
+        bool buttonUpCurrent = controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP);
+        if (buttonUpCurrent && !buttonUpPressed) {
+            togglePistonA();
+        }
+        buttonUpPressed = buttonUpCurrent;
 
-        if (Controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) intakeBackwardsPressed();
-        else intakeBackwardsReleased();
-
-        if (Controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) outputBackwardsPressed();
-        else outputBackwardsReleased();
-
-        if (Controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) togglePistonA();
-        if (Controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) togglePistonB();
+        bool buttonXCurrent = controller.get_digital(pros::E_CONTROLLER_DIGITAL_X);
+        if (buttonXCurrent && !buttonXPressed) {
+            togglePistonB();
+        }
+        buttonXPressed = buttonXCurrent;
 
         pros::delay(10);
     }
-}
-
-// Pre-auton
-void initializeRandomSeed() {
-    std::srand(std::time(nullptr));
-}
-
-void initialize() {
-    initializeRandomSeed();
-}
-
-// PROS competition setup
-pros::Competition Competition;
-
-int main() {
-    initialize();
-    Competition.autonomous(autonomous);
-    Competition.operator_control(opcontrol);
-
-    // For standalone testing
-    if (!Competition.is_connected()) {
-        opcontrol();
-    }
-
-    for (;;) { pros::delay(100); } // hang main
 }
