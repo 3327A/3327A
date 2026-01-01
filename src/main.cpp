@@ -237,7 +237,7 @@ void autonomous() {
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 80, "Press A to start");
 
-    while (!(controller.ButtonA.pressing())) {} // hang until button is pressed signifing that game started
+    while (!(controller.ButtonA.pressing())) { pros::delay(10); } // hang until button is pressed signifing that game started
 
     pros::screen::erase();
     pros::screen::set_pen(pros::c::COLOR_WHITE);
