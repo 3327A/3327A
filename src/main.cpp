@@ -41,26 +41,26 @@ void auton_selector_task();
  * Draws the alliance selection screen (Red, Blue, Skills)
  */
 void draw_alliance_selection() {
-    pros::screen::erase();
-    
+     pros::screen::erase();
+
     // Red button (left)
     pros::screen::set_pen(pros::c::COLOR_RED);
     pros::screen::fill_rect(20, 80, 20 + BUTTON_WIDTH, 80 + BUTTON_HEIGHT);
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_MEDIUM_CENTER, 95, 110, "RED");
-    
+
     // Blue button (middle)
     pros::screen::set_pen(pros::c::COLOR_BLUE);
     pros::screen::fill_rect(190, 80, 190 + BUTTON_WIDTH, 80 + BUTTON_HEIGHT);
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_MEDIUM_CENTER, 265, 110, "BLUE");
-    
+
     // Skills button (right)
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::fill_rect(360, 80, 360 + BUTTON_WIDTH, 80 + BUTTON_HEIGHT);
     pros::screen::set_pen(pros::c::COLOR_BLACK);
     pros::screen::print(pros::text_format_e_t::E_TEXT_MEDIUM_CENTER, 435, 110, "SKILLS");
-    
+
     // Title
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 20, "Select Alliance");
@@ -71,19 +71,19 @@ void draw_alliance_selection() {
  */
 void draw_side_selection() {
     pros::screen::erase();
-    
+
     // Yellow button with L (left side)
     pros::screen::set_pen(pros::c::COLOR_YELLOW);
     pros::screen::fill_rect(90, 70, 90 + SIDE_BUTTON_SIZE, 70 + SIDE_BUTTON_SIZE);
     pros::screen::set_pen(pros::c::COLOR_BLACK);
     pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, 140, 110, "L");
-    
+
     // Purple button with R (right side)
     pros::screen::set_pen(pros::c::COLOR_PURPLE);
     pros::screen::fill_rect(290, 70, 290 + SIDE_BUTTON_SIZE, 70 + SIDE_BUTTON_SIZE);
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, 340, 110, "R");
-    
+
     // Title
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 20, "Select Side");
@@ -96,18 +96,32 @@ void display_selection() {
     pros::screen::erase();
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 80, "Auton Selected:");
-    
+
     std::string alliance_str;
     if (selected_alliance == Alliance::RED) alliance_str = "RED";
     else if (selected_alliance == Alliance::BLUE) alliance_str = "BLUE";
     else if (selected_alliance == Alliance::SKILLS) alliance_str = "SKILLS";
-    
+
     std::string side_str = "";
     if (selected_side == Side::LEFT) side_str = " - LEFT";
     else if (selected_side == Side::RIGHT) side_str = " - RIGHT";
-    
+
     pros::screen::print(pros::text_format_e_t::E_TEXT_MEDIUM_CENTER, SCREEN_WIDTH/2, 120, 
                        (alliance_str + side_str).c_str());
+}
+
+/**
+ * Waits for touch to be released
+ */
+void wait_for_release() {
+    while (true) {
+        pros::screen_touch_status_s_t status = pros::screen::touch_status();
+        if (status.touch_status == pros::E_TOUCH_RELEASED) {
+            break;
+        }
+        pros::delay(20);
+    }
+    pros::delay(100); // Extra delay to ensure clean release
 }
 
 /**
@@ -115,14 +129,17 @@ void display_selection() {
  */
 void auton_selector_task() {
     draw_alliance_selection();
-    
+
+    // Wait for any existing touch to be released before starting
+    wait_for_release();
+
     while (true) {
         pros::screen_touch_status_s_t status = pros::screen::touch_status();
-        
+
         if (status.touch_status == pros::E_TOUCH_PRESSED) {
             int x = status.x;
             int y = status.y;
-            
+
             if (!alliance_selected) {
                 // Check alliance buttons
                 if (y >= 80 && y <= 160) {
@@ -130,14 +147,14 @@ void auton_selector_task() {
                     if (x >= 20 && x <= 170) {
                         selected_alliance = Alliance::RED;
                         alliance_selected = true;
-                        pros::delay(200);
+                        wait_for_release();
                         draw_side_selection();
                     }
                     // Blue button
                     else if (x >= 190 && x <= 340) {
                         selected_alliance = Alliance::BLUE;
                         alliance_selected = true;
-                        pros::delay(200);
+                        wait_for_release();
                         draw_side_selection();
                     }
                     // Skills button
@@ -145,7 +162,7 @@ void auton_selector_task() {
                         selected_alliance = Alliance::SKILLS;
                         selected_side = Side::NONE;
                         alliance_selected = true;
-                        pros::delay(200);
+                        wait_for_release();
                         display_selection();
                         break;
                     }
@@ -157,21 +174,21 @@ void auton_selector_task() {
                     // Yellow/Left button
                     if (x >= 90 && x <= 190) {
                         selected_side = Side::LEFT;
-                        pros::delay(200);
+                        wait_for_release();
                         display_selection();
                         break;
                     }
                     // Purple/Right button
                     else if (x >= 290 && x <= 390) {
                         selected_side = Side::RIGHT;
-                        pros::delay(200);
+                        wait_for_release();
                         display_selection();
                         break;
                     }
                 }
             }
         }
-        
+
         pros::delay(20);
     }
 }
@@ -196,9 +213,12 @@ void on_center_button() {
 void initialize() {
     pros::lcd::initialize();
     pros::lcd::register_btn1_cb(on_center_button);
-
-    // Run the auton selector
-    auton_selector_task();
+    
+CheckScreen:
+    if (pros::c::lcd_is_initialized()) {
+        // Run the auton selector
+        auton_selector_task();
+    } else goto CheckScreen;
 }
 
 /**
@@ -213,6 +233,17 @@ void initialize() {
  * from where it left off.
  */
 void autonomous() {
+    pros::screen::erase();
+    pros::screen::set_pen(pros::c::COLOR_WHITE);
+    pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 80, "Press A to start");
+
+    while (!(controller.ButtonA.pressing())) {} // hang until button is pressed signifing that game started
+
+    pros::screen::erase();
+    pros::screen::set_pen(pros::c::COLOR_WHITE);
+    pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 80, "starting auton");
+
+
     if (selected_alliance == Alliance::RED) {
         if (selected_side == Side::LEFT) {
             red_left_auton();
@@ -266,6 +297,13 @@ void competition_initialize() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+    pros::screen::erase();
+    pros::screen::set_pen(pros::c::COLOR_WHITE);
+    pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 80, "OP-CONTROL");
+
+    pros::screen::set_pen(pros::c::COLOR_WHITE);
+    pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 20, "TIKKKKK!");
+
     // Make sure pistons are down
     pistonA.set_value(false);
     pistonB.set_value(false);
