@@ -24,9 +24,9 @@ auto outputBackward(void) -> void;
 // Drive functions
 auto setLeftMotors(int speed) -> void;
 auto setRightMotors(int speed) -> void;
-auto stopLeftMotors() -> void;
-auto stopRightMotors() -> void;
-auto stopAllDrive() -> void;
+auto stopLeftMotors(void) -> void;
+auto stopRightMotors(void) -> void;
+auto stopAllDrive(void) -> void;
 
 /**
  * Moves the robot forward by a specified number of inches
