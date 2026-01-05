@@ -2,74 +2,74 @@
 #include "motors.hpp"
 #include "def.hpp"
 
-int clamp(int value, int min, int max) {
+auto clamp(int value, int min, int max) -> int {
     if (value < min) return min;
     if (value > max) return max;
     return value;
 }
 
-void togglePistonA() {
+auto togglePistonA(void) -> void {
     pistonAState = !pistonAState;
     pistonA.set_value(pistonAState);
 }
 
-void togglePistonB() {
+auto togglePistonB(void) -> void {
     pistonBState = !pistonBState;
     pistonB.set_value(pistonBState);
 }
 
 // Intake functions
-void intakeForward() {
+auto intakeForward(void) -> void {
     rubberBandThing.move(127);
 }
 
-void intakeStop() {
+auto intakeStop(void) -> void {
     rubberBandThing.move(0);
 }
 
-void intakeBackward() {
+auto intakeBackward(void) -> void {
     rubberBandThing.move(-127);
 }
 
 // Output functions
-void outputForward() {
+auto outputForward(void) -> void {
     outputBelt.move(127);
 }
 
-void outputStop() {
+auto outputStop(void) -> void {
     outputBelt.move(0);
 }
 
-void outputBackward() {
+auto outputBackward(void) -> void {
     outputBelt.move(-127);
 }
 
 // Drive functions
-void setLeftMotors(int speed) {
+auto setLeftMotors(int speed) -> void {
     frontMotorLeft.move(speed);
     backMotorLeft.move(speed);
     middleMotorLeft.move(speed);
 }
 
-void setRightMotors(int speed) {
+auto setRightMotors(int speed) -> void {
     frontMotorRight.move(speed);
     backMotorRight.move(speed);
     middleMotorRight.move(speed);
 }
 
-void stopLeftMotors() {
+auto stopLeftMotors(void) -> void {
     frontMotorLeft.move(0);
     backMotorLeft.move(0);
     middleMotorLeft.move(0);
 }
 
-void stopRightMotors() {
+auto stopRightMotors(void) -> void {
     frontMotorRight.move(0);
     backMotorRight.move(0);
     middleMotorRight.move(0);
 }
 
-void stopAllDrive() {
+auto stopAllDrive(void) -> void {
     stopLeftMotors();
     stopRightMotors();
 }
@@ -79,7 +79,7 @@ void stopAllDrive() {
  * Moves the robot forward by a specified number of inches
  * Positive inches = forward, negative inches = backward
  */
-void move_in(int inches) {
+auto move_in(int inches) -> void {
     // Calculate wheel circumference
     double circumference = WHEEL_DIAMETER * M_PI;
     
@@ -111,7 +111,7 @@ void move_in(int inches) {
 /**
  * Turns the robot left by a specified number of degrees
  */
-void turn_degrees_left(int degrees) {
+auto turn_degrees_left(int degrees) -> void{
     // Calculate arc length for the turn
     double arc_length = (WHEEL_BASE_WIDTH * M_PI * degrees) / 360.0;
     
@@ -141,7 +141,7 @@ void turn_degrees_left(int degrees) {
 /**
  * Turns the robot right by a specified number of degrees
  */
-void turn_degrees_right(int degrees) {
+auto turn_degrees_right(int degrees) -> void {
     // Calculate arc length for the turn
     double arc_length = (WHEEL_BASE_WIDTH * M_PI * degrees) / 360.0;
     
