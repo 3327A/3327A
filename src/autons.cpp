@@ -1,18 +1,18 @@
 #include "api.h"
 #include "autons.hpp"
 
-void red_left_auton() {
+auto red_left_auton() -> void {
 
 }
 
-void red_right_auton() {
+auto red_right_auton() -> void {
 
 }
 
-void blue_left_auton() {
+auto blue_left_auton() -> void {
 
 }
 
-void blue_right_auton() {
+auto blue_right_auton() -> void {
 
 }
