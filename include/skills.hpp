@@ -1,6 +1,6 @@
 #ifndef SKILLS_HPP
 #define SKILLS_HPP
 
-void skills();
+auto skills(void) -> void;
 
 #endif // SKILLS_HPP
