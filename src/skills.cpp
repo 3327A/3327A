@@ -1,5 +1,5 @@
 #include "skills.hpp"
 
-void skills() {
+auto skills(void) -> void {
 
 }
