@@ -35,12 +35,12 @@ Side selected_side = Side::NONE;
 bool alliance_selected = false;
 
 // Forward declaration
-void auton_selector_task();
+auto auton_selector_task(void) -> void;
 
 /**
  * Draws the alliance selection screen (Red, Blue, Skills)
  */
-void draw_alliance_selection() {
+auto draw_alliance_selection(void) -> void {
      pros::screen::erase();
 
     // Red button (left)
@@ -69,7 +69,7 @@ void draw_alliance_selection() {
 /**
  * Draws the side selection screen (Left/Yellow or Right/Purple)
  */
-void draw_side_selection() {
+auto draw_side_selection(void) -> void {
     pros::screen::erase();
 
     // Yellow button with L (left side)
@@ -92,7 +92,7 @@ void draw_side_selection() {
 /**
  * Displays the final selection
  */
-void display_selection() {
+auto display_selection(void) -> void {
     pros::screen::erase();
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 80, "Auton Selected:");
@@ -113,7 +113,7 @@ void display_selection() {
 /**
  * Waits for touch to be released
  */
-void wait_for_release() {
+auto wait_for_release(void) -> void {
     while (true) {
         pros::screen_touch_status_s_t status = pros::screen::touch_status();
         if (status.touch_status == pros::E_TOUCH_RELEASED) {
@@ -127,7 +127,7 @@ void wait_for_release() {
 /**
  * Handles touch screen input for auton selection
  */
-void auton_selector_task() {
+auto auton_selector_task(void) -> void {
     draw_alliance_selection();
 
     // Wait for any existing touch to be released before starting
@@ -196,7 +196,7 @@ void auton_selector_task() {
 /**
  * Callback for center button press - resets selection
  */
-void on_center_button() {
+auto on_center_button(void) -> void {
     // Reset selection and restart selector
     selected_alliance = Alliance::NONE;
     selected_side = Side::NONE;
@@ -210,7 +210,7 @@ void on_center_button() {
  * All other competition modes are blocked by initialize; it is recommended
  * to keep execution time for this mode under a few seconds.
  */
-void initialize() {
+auto initialize(void) -> void {
     pros::lcd::initialize();
     pros::lcd::register_btn1_cb(on_center_button);
     
@@ -232,7 +232,7 @@ CheckScreen:
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {
+auto autonomous(void) -> void {
     pros::screen::erase();
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 80, "Press A to start");
@@ -270,7 +270,7 @@ void autonomous() {
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
-void disabled() {}
+auto disabled(void) -> void {}
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
@@ -281,7 +281,7 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+auto competition_initialize(void) -> void {}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -296,7 +296,7 @@ void competition_initialize() {}
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
-void opcontrol() {
+auto opcontrol(void) -> void {
     pros::screen::erase();
     pros::screen::set_pen(pros::c::COLOR_WHITE);
     pros::screen::print(pros::text_format_e_t::E_TEXT_LARGE_CENTER, SCREEN_WIDTH/2, 80, "OP-CONTROL");
