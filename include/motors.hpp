@@ -5,43 +5,43 @@
 #include "motors.hpp"
 
 
-int clamp(int value, int min, int max);
+auto clamp(int value, int min, int max) -> int;
 
 // Pneumatic functions
-void togglePistonA();
-void togglePistonB();
+auto togglePistonA(void) -> void;
+auto togglePistonB(void) -> void;
 
 // Intake functions
-void intakeForward();
-void intakeStop();
-void intakeBackward();
+auto intakeForward(void) -> void;
+auto intakeStop(void) -> void;
+auto intakeBackward(void) -> void;
 
 // Output functions
-void outputForward();
-void outputStop();
-void outputBackward();
+auto outputForward(void) -> void;
+auto outputStop(void) -> void;
+auto outputBackward(void) -> void;
 
 // Drive functions
-void setLeftMotors(int speed);
-void setRightMotors(int speed);
-void stopLeftMotors();
-void stopRightMotors();
-void stopAllDrive();
+auto setLeftMotors(int speed) -> void;
+auto setRightMotors(int speed) -> void;
+auto stopLeftMotors() -> void;
+auto stopRightMotors() -> void;
+auto stopAllDrive() -> void;
 
 /**
  * Moves the robot forward by a specified number of inches
  * Positive inches = forward, negative inches = backward
  */
-void move_in(int inches);
+auto move_in(int inches) -> void;
 
 /**
  * Turns the robot left by a specified number of degrees
  */
-void turn_degrees_left(int degrees);
+auto turn_degrees_left(int degrees) -> void;
 
 /**
  * Turns the robot right by a specified number of degrees
  */
-void turn_degrees_right(int degrees);
+auto turn_degrees_right(int degrees) -> void;
 
 #endif // MOTORS_HPP
