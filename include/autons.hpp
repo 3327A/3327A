@@ -3,9 +3,9 @@
 
 #include "api.h"
 
-void red_left_auton();
-void red_right_auton();
-void blue_left_auton();
-void blue_right_auton();
+auto red_left_auton(void) -> void;
+auto red_right_auton(void) -> void;
+auto blue_left_auton(void) -> void;
+auto blue_right_auton(void) -> void;
 
 #endif // AUTONS_HPP
